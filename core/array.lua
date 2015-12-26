@@ -11,6 +11,28 @@ local pairs, ipairs = pairs, ipairs
 
 -- return the array type directly as the module
 return class(function (array)
+	
+	-- capture the default constructor
+	local super = array.new
+	
+	-- custom constructor
+	function array.new(init)
+		-- optionally initialise from an iterator
+		if type(init) == 'function' then
+			return array():collect(init)
+		end
+		
+		local self = super()
+		
+		-- copy the contents of a table if supplied
+		if type(init) == 'table' then
+			for i, v in ipairs(init) do
+				self[i] - v
+			end
+		end
+		
+		return self
+	end
 
 	function array:with_each(fn)
 		for i, v in ipairs(self) do
