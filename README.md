@@ -13,14 +13,10 @@ Most of these Lua modules use the class module. The structure of the class modul
 	-- this module defines a class
 	return class(function (myclass)
 
-		-- capture the default constructor
-		local super = myclass.new
-	
 		-- custom constructor
-		function myclass.new()
-			local self = super()
+		function myclass:init(name)
+			self.name = name
 			self.collection = array()
-			return self
 		end
 	
 		-- method
@@ -34,7 +30,7 @@ A class can be instantiated by calling classname.new() or with the __call metame
 
 	-- test.lua
 	local myclass = require('myclass')
-	local instance = myclass()
+	local instance = myclass("good things collection")
 	instance:collect({ something_good = true })
 
 The module template is a simplified version of the same structure without the extra layer of metatables. A module is instantiated once by default as part of the Lua require process, but the __call metamethod can be used to create multiple instantians of a module if required.
