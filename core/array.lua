@@ -1,4 +1,4 @@
--- module to give array tables some convenience functions
+-- module to give array tables some standard convenience functions
 -- copyright 2014 Samuel Baird MIT Licence
 
 local table = require("table")
@@ -9,7 +9,6 @@ local class = require("core.class")
 
 local pairs, ipairs = pairs, ipairs
 
--- return the array type directly as the module
 return class(function (array)
 	
 	-- capture the default constructor
@@ -27,13 +26,14 @@ return class(function (array)
 		-- copy the contents of a table if supplied
 		if type(init) == 'table' then
 			for i, v in ipairs(init) do
-				self[i] - v
+				self[i] = v
 			end
 		end
 		
 		return self
 	end
 
+	-- call a function on each element
 	function array:with_each(fn)
 		for i, v in ipairs(self) do
 			fn(v)
@@ -58,7 +58,7 @@ return class(function (array)
 		end
 	end
 
-	-- clone, shallow copy for now
+	-- clone, shallow copy
 	function array:clone()
 		local out = array()
 		for i, v in ipairs(self) do
@@ -131,7 +131,6 @@ return class(function (array)
 
 	function array:push_back(value)
 		self[#self + 1] = value
-		-- return self or return value?
 	end
 	
 	function array:push_front(value)
@@ -160,8 +159,9 @@ return class(function (array)
 			length = length + 1
 			self[length] = vars[1]
 		end
+		return self
 	end
-	
+
 	-- return a coroutine that will iterate through all permutations of array ordering
 	function array:permutations()
 		return coroutine.wrap(function()

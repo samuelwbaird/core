@@ -1,8 +1,6 @@
--- convenience & convention around creating simple class types
--- no inheritance or data hiding built in
+-- convention around creating simple metatable class types
+-- no inheritance, data hiding built in
 -- copyright 2014 Samuel Baird MIT Licence
-
-local pairs, ipairs = pairs, ipairs
 
 local class_meta = {
 	-- constructor callable directly off the class
@@ -11,19 +9,11 @@ local class_meta = {
 	end,
 	-- class static meta methods
 	__index = {
-		mixin = function (self, other_class, names)
-			local names_set = {}
-			if names then
-				for _, name in ipairs(names) do
-					names_set[name] = true
-				end
-			end
+		mixin = function (self, other_class)
 			-- "inherit" the values if applicable
 			for k, v in pairs(other_class) do
 				if self[k] == nil then
-					if names == nil or names_set[k] then
-						self[k] = v
-					end
+					self[k] = v
 				end
 			end
 		end,
@@ -36,7 +26,6 @@ local class_meta = {
 				-- intersect with lazy constructor
 				if lazy_property_constructors[name] then
 					local val = lazy_property_constructors[name]()
-					rawset(obj, "has_" .. name, true)
 					rawset(obj, name, val)
 					return val
 				end
@@ -62,9 +51,13 @@ local function class(class_constructor)
 	local meta = {}
 	meta.__index = meta
 	
-	-- explicit constructor
-	function meta.new(init_state)
-		return setmetatable(init_state or {}, meta)
+	function meta.new(...)
+		local self = setmetatable({}, meta)
+		if meta.init then
+			return self:init(...) or self
+		else
+			return self
+		end
 	end
 	
 	function meta.is_member(obj)
@@ -72,12 +65,21 @@ local function class(class_constructor)
 	end
 	
 	setmetatable(meta, class_meta)
-		
+
+	-- define this class
 	if class_constructor then
 		class_constructor(meta)
 	end
 	
+	
 	return meta
+end
+
+local function derive(base, class_constructor)
+	return class(function (derived)
+		derived:mixin(base)
+		class_constructor(derived)
+	end)
 end
 
 local function package(publish_these_classes_and_functions, default_constructor)
@@ -118,4 +120,4 @@ local function package(publish_these_classes_and_functions, default_constructor)
 	return publish
 end
 
-return setmetatable({ new = class, package = package }, class_meta)
+return setmetatable({ new = class, derive = derive, package = package }, class_meta)
